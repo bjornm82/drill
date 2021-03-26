@@ -3,13 +3,14 @@ package drill
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/pkg/errors"
 	"github.com/xeipuuv/gojsonschema"
 )
 
 const (
-	drillSchemaPath = "file://./schema.json"
+	drillSchemaPath = "schema.json"
 
 	dropViewFmt   = "DROP VIEW `%s`.`%s`.`%s`"
 	createViewFmt = "CREATE OR REPLACE VIEW `%s`.`%s`.`%s` AS "
@@ -29,7 +30,11 @@ type Field struct {
 }
 
 func (d *Drill) Validate() (bool, error) {
-	ls := gojsonschema.NewReferenceLoader(drillSchemaPath)
+	data, err := Asset(drillSchemaPath)
+	if err != nil {
+		return false, errors.Wrap(err, "unable to find asset drill schema")
+	}
+	ls := gojsonschema.NewBytesLoader(data)
 	ld := gojsonschema.NewGoLoader(d)
 
 	result, err := gojsonschema.Validate(ls, ld)
@@ -38,9 +43,9 @@ func (d *Drill) Validate() (bool, error) {
 	}
 
 	if !result.Valid() {
-		fmt.Printf("The document is not valid. see errors :\n")
+		log.Printf("The document is not valid. see errors :\n")
 		for _, desc := range result.Errors() {
-			fmt.Printf("- %s\n", desc)
+			log.Printf("- %s\n", desc)
 		}
 
 		return false, errors.New("document is not valid")
@@ -59,7 +64,7 @@ func (c *Client) UpsertView(d Drill, source, workspace string) (ResponseBody, er
 	var path = "query.json"
 	ok, err := d.Validate()
 	if !ok {
-		return ResponseBody{}, errors.New("object not through validation")
+		return ResponseBody{}, errors.Wrap(err, "object not through validation")
 	}
 	if err != nil {
 		return ResponseBody{}, errors.Wrap(err, "object not valid")

@@ -49,9 +49,10 @@ type RequestBody struct {
 }
 
 type ResponseBody struct {
-	QueryID string   `json:"queryId"`
-	Columns []string `json:"columns"`
-	Rows    []struct {
+	ErrorMessage string   `json:"errorMessage"`
+	QueryID      string   `json:"queryId"`
+	Columns      []string `json:"columns"`
+	Rows         []struct {
 		Summary string `json:"summary"`
 		Ok      string `json:"ok"`
 	} `json:"rows"`
@@ -98,12 +99,22 @@ func (c *Client) do(method string, path string, body RequestBody) (ResponseBody,
 	defer resp.Body.Close()
 
 	err = c.readJSON(resp, &respBody)
+
 	if err != nil {
 		return respBody, newError(
 			http.StatusBadRequest,
 			method,
 			addr,
-			errors.Wrap(err, "unable to perform client request").Error(),
+			errors.Wrap(err, "unable to read json response").Error(),
+		)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return respBody, newError(
+			resp.StatusCode,
+			method,
+			addr,
+			errors.New("statuscode is not equal to 200").Error(),
 		)
 	}
 
