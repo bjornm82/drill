@@ -29,7 +29,8 @@ type Field struct {
 	IsNullable bool   `json:"isNullable"`
 }
 
-func (d *Drill) Validate() (bool, error) {
+func (c *Client) Validate(d Drill) (bool, error) {
+	var path = "query.json"
 	data, err := Asset(drillSchemaPath)
 	if err != nil {
 		return false, errors.Wrap(err, "unable to find asset drill schema")
@@ -51,18 +52,25 @@ func (d *Drill) Validate() (bool, error) {
 		return false, errors.New("document is not valid")
 	}
 
-	// TODO: Not validating, should be probably with Drill by just querying the API
-	// _, err = sqlparser.Parse(d.Sql)
-	// if err != nil {
-	// 	return false, errors.Wrap(err, "not able to parse query")
-	// }
+	u := RequestBody{
+		QueryType: "SQL",
+		Query:     d.Sql,
+	}
+	respBody, err := c.post(path, u)
+	if err != nil {
+		return false, errors.New("sql doesn't evaluate againts drill")
+	}
+
+	if respBody.QueryState != "COMPLETED" {
+		return false, errors.Wrap(err, "sql didn't evaluate againts drill")
+	}
 
 	return true, nil
 }
 
 func (c *Client) UpsertView(d Drill, source, workspace string) (ResponseBody, error) {
 	var path = "query.json"
-	ok, err := d.Validate()
+	ok, err := c.Validate(d)
 	if !ok {
 		return ResponseBody{}, errors.Wrap(err, "object not through validation")
 	}

@@ -33,19 +33,33 @@ var testView = `{
   }`
 
 func TestValidation(t *testing.T) {
+	cl := NewClient("localhost", 8047, false)
 	d := Drill{}
 	err := d.Unmarshal([]byte(testView))
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	ok, err := d.Validate()
+	ok, err := cl.Validate(d)
 	assert.True(t, ok)
 	assert.NoError(t, err)
 }
 func TestValidation_FailedNoView(t *testing.T) {
+	cl := NewClient("localhost", 8047, false)
 	d := Drill{}
-	ok, err := d.Validate()
+	ok, err := cl.Validate(d)
+	assert.False(t, ok)
+	assert.Error(t, err)
+}
+func TestValidation_FailedInCorrectSQL(t *testing.T) {
+	cl := NewClient("localhost", 8047, false)
+	d := Drill{}
+	err := d.Unmarshal([]byte(testView))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	d.Sql = "`SELECT * FROM nononon`"
+	ok, err := cl.Validate(d)
 	assert.False(t, ok)
 	assert.Error(t, err)
 }
