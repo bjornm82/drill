@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "#drill",
+    "title": "schema for an drill entry",
+    "type": "object",
+    "required": [
+        "name",
+        "sql",
+        "fields"
+    ],
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "sql": {
+            "type": "string"
+        },
+        "fields": {
+            "type": "array",
+            "additionalItems": false,
+            "items": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "type",
+                    "isNullable"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["BIGINT", "BINARY", "BOOLEAN", "DATE", "DOUBLE", "INTEGER", "TIMESTAMP", "VARCHAR"]
+                    },
+                    "precision": {
+                        "type": "integer"
+                    },
+                    "isNullable": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    }
+}
