@@ -125,6 +125,10 @@ func (c *Client) post(path string, u RequestBody) (ResponseBody, error) {
 	return c.do("POST", path, u)
 }
 
+func (c *Client) get(path string) (ResponseBody, error) {
+	return c.do("GET", path, RequestBody{})
+}
+
 func (c *Client) readJSON(resp *http.Response, valuePtr interface{}) error {
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

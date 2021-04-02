@@ -29,6 +29,17 @@ type Field struct {
 	IsNullable bool   `json:"isNullable"`
 }
 
+func (c *Client) Health() error {
+	var path = "storage.json"
+	// TODO: Needs fixing, other type of result
+	_, err := c.get(path)
+	if err != nil {
+		return errors.New("sql doesn't evaluate againts drill")
+	}
+
+	return nil
+}
+
 func (c *Client) Validate(d Drill) (bool, error) {
 	var path = "query.json"
 	data, err := Asset(drillSchemaPath)
